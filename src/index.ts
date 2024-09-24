@@ -1,5 +1,8 @@
 import inquirer from 'inquirer';
-import {pool} from './db/connection';
+import {pool, connectTOOb} from './db/connection.js';
+
+
+connectTOOb();
 
 const promptActions = async () => {
 const answers = await 
@@ -77,40 +80,47 @@ inquirer
             name:'departmentName',
             message: 'What department would you like to add?'
         },
-    ])};
-
+    ]);
     try {
         await pool.query('INSERT INTO departments (name) VALUES ($1)', [answers.departmentName]);
         console.log(`Added ${answers.departmentName} to departments`);
     } catch (err) {
         console.error('Error adding department',err);
     };
-
+    };
     const addRole = async () => {
         const answers = await inquirer.prompt([
         {
             type:'input',
-            name:'addRole',
-            message: 'What role would you like to add?'
+            name:'title',
+            message: 'What is the title of the role?',
         },
         {
-            type:
+            type: 'input',
+            name: 'salary',
+            message: 'What is the salary of the role?'
+        },
+        {
+            type: 'list',
+            name: 'departmentName',
+            message: 'What is the department ID?',
+            choices: ["Sales","Engineer","Finance", "Legal" ]
+
+        },
+    ]);
+    try {
+        await pool.query('INSERT INTO roles (title, salary, departments_name) VALUES ($1, $2, $3)',
+            [answers.title, answers.salary, answers.departmentName]
+         );
+            console.log(`Added ${answers.title} to roles`);
+        } catch (err) {
+            console.error('Error adding role',err);
         }
-        {
-            type:'input',
-            name:'addEmployee',
-            message: 'What employee would you like to add?'
+    };
 
-    },
-
-        {
-            type:'input',
-            name:'updateEmployeeRole',
-            message: 'What role would you like to update for the employee?'
-        }, 
-
- 
-        {
+    const addEmployee = async () => {
+        const answers = await inquirer.prompt([
+    {
             type: 'input',
             name: "firstName",
             message: "What is the employee's first name?"
@@ -122,7 +132,7 @@ inquirer
         },
         {
             type: "list",
-            name: "employeeRole",
+            name: "role",
             message: "What is the employee's role?",
             choices: [
                 'Sales Lead',
@@ -131,11 +141,11 @@ inquirer
                 'Software Engineer',
                 'Accountant',
                 'Legal Team Lead',
-                'Lawyer'
+                'Lawyer',
             ]
         },
         {
-            type: "list",
+            type: 'list',
             name: "employeeManager",
             message: "Who is the employee's manager?",
             choices: [
@@ -147,9 +157,37 @@ inquirer
                 'Sarah Lourd',
             ]
         },
-        
-        ])};
-   
+    ]);
 
+    try {
+        await pool.query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)',
+            [answers.firstName, answers.lastName, answers.role, answers.employeeManager],
+        );
+        console.log(`Added ${answers.firstName} ${answers.lastName} to employees`);
+    } catch (err) {
+        console.error('Error adding employee',err);
+    }
+};
+const updateEmployeeRole = async () => {
+    const answers = await inquirer.prompt([
+    {
+        type: 'input',
+        name: 'employeeId',
+        message: "Enter the employee's ID to update:",
+    },
+    {
+        type: 'input',
+        name: 'newRoleId',
+        message: "Enter the employee's role to update:",
+    },
+    ]);
 
-        const SelectedAction = (answers: any) => {}
+    try {
+        await pool.query('UPDATE employees SET role_id = $1 WHERE id = $2',
+            [answers.newRoleId, answers.employeeId]),
+            console.log(`Updated employee role to ${answers.newRoleId}`);
+        } catch (err) {
+            console.error('Error updating employee role',err);
+        }};
+
+promptActions();
