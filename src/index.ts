@@ -1,8 +1,8 @@
 import inquirer from 'inquirer';
-import {pool, connectTOOb} from './db/connection.js';
+import {pool, connectToDb} from './db/connection.js';
 
 
-connectTOOb();
+await connectToDb();
 
 const promptActions = async () => {
 const answers = await 
@@ -48,7 +48,7 @@ inquirer
 
     const viewDepartments = async ()=> {
         try {
-            const res = await pool.query('SELECT * FROM departments');
+            const res = await pool.query('SELECT name, id FROM departments');
             console.table(res.rows);
         } catch (err) {
             console.error('Error viewing departments',err);

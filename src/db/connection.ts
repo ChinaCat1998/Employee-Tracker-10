@@ -9,11 +9,11 @@ export const pool = new Pool({
     password:process.env.DB_PASSWORD,
     host:'localhost',
     database:process.env.DB_NAME,
-    port:5433
+    port:5432
 });
 
 
-export const connectTOOb = async () => {
+export const connectToDb = async () => {
     try {
         await pool.connect();
         console.log('Connected to database');

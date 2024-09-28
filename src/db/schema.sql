@@ -1,12 +1,8 @@
-DROP DATABASE IF EXISTS Employee_Tracker;
+DROP DATABASE IF EXISTS employee_tracker;
 
-CREATE DATABASE Employee_Tracker;
+CREATE DATABASE employee_tracker;
 
-DROP SCHEMA IF EXISTS EmployeeTrackerSchema;
-
-CREATE SCHEMA EmployeeTrackerSchema;
-
-set search_path to EmployeeTrackerSchema;
+SET search_path TO employee_tracker,public;
 
 CREATE TABLE departments (
     id SERIAL PRIMARY KEY,
@@ -36,3 +32,5 @@ CREATE TABLE employees (
     REFERENCES employees(id)
     ON DELETE SET NULL
 );
+
+
