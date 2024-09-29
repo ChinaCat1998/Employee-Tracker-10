@@ -88,7 +88,7 @@ inquirer
         await viewDepartments();
     } catch (err) {
         console.error('Error adding department',err);
-    };
+    }
     };
 
     const getDepartments = async () => {
