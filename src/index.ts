@@ -1,5 +1,5 @@
 import inquirer from 'inquirer';
-import {pool, connectToDb} from './db/connection.js';
+import {pool, connectToDb} from './db/connection.js'
 
 
 await connectToDb();
@@ -46,16 +46,17 @@ inquirer
     promptActions();
     };     
 
-    const viewDepartments = async ()=> {
+      const viewDepartments = async ()=> {
         try {
-            const res = await pool.query('SELECT name, id FROM departments');
+            const res = await pool.query('SELECT * FROM departments');
             console.table(res.rows);
         } catch (err) {
             console.error('Error viewing departments',err);
         }
         };
 
-    const viewRoles = async () => {
+
+   const viewRoles = async () => {
         try {
             const res = await pool.query('SELECT * FROM roles');
             console.table(res.rows);
@@ -66,7 +67,7 @@ inquirer
 
     const viewEmployees = async () => {
         try {
-            const res = await pool.query('SELECT * FROM employees')
+            const res = await pool.query('SELECT *FROM employees, roles WHERE employees.role_id = roles.id');
             console.table(res.rows);
         } catch (err) {
             console.error('Error viewing employees',err);
@@ -84,11 +85,30 @@ inquirer
     try {
         await pool.query('INSERT INTO departments (name) VALUES ($1)', [answers.departmentName]);
         console.log(`Added ${answers.departmentName} to departments`);
+        await viewDepartments();
     } catch (err) {
         console.error('Error adding department',err);
     };
     };
+
+    const getDepartments = async () => {
+        try {
+            const res = await pool.query('SELECT id, name FROM departments');
+            return res.rows;
+        }catch (err) {
+            console.error('Error getting departments',err);
+            return [];
+        }
+        };
+
+
+
     const addRole = async () => {
+        const departments = await getDepartments();
+          const departmentChoices = departments.map(dept => ({
+        name: dept.name,
+        value: dept.id
+    }));
         const answers = await inquirer.prompt([
         {
             type:'input',
@@ -104,15 +124,16 @@ inquirer
             type: 'list',
             name: 'departmentName',
             message: 'What is the department ID?',
-            choices: ["Sales","Engineer","Finance", "Legal" ]
+            choices: departmentChoices,
 
         },
     ]);
     try {
-        await pool.query('INSERT INTO roles (title, salary, departments_name) VALUES ($1, $2, $3)',
+        await pool.query('INSERT INTO roles (title, salary, departments_id) VALUES ($1, $2, $3)',
             [answers.title, answers.salary, answers.departmentName]
          );
             console.log(`Added ${answers.title} to roles`);
+            await viewRoles();
         } catch (err) {
             console.error('Error adding role',err);
         }
@@ -160,10 +181,11 @@ inquirer
     ]);
 
     try {
-        await pool.query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)',
-            [answers.firstName, answers.lastName, answers.role, answers.employeeManager],
-        );
+        await pool.query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1,$2,$3,$4)'),
+            [answers.firstName,answers.lastName,answers.role,answers.employeeManager]
+            ;
         console.log(`Added ${answers.firstName} ${answers.lastName} to employees`);
+        await viewEmployees();
     } catch (err) {
         console.error('Error adding employee',err);
     }
@@ -186,7 +208,7 @@ const updateEmployeeRole = async () => {
         await pool.query('UPDATE employees SET role_id = $1 WHERE id = $2',
             [answers.newRoleId, answers.employeeId]),
             console.log(`Updated employee role to ${answers.newRoleId}`);
-        } catch (err) {
+    }catch (err) {
             console.error('Error updating employee role',err);
         }};
 
